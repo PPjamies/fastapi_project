@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-profile}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-profile}
+      POSTGRES_DB: ${POSTGRES_DB:-profiles}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-profile} -d ${POSTGRES_DB:-profiles}"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  profile-api:
+    build: ./services/profile-api
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-profile}:${POSTGRES_PASSWORD:-profile}@db:5432/${POSTGRES_DB:-profiles}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
