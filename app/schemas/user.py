@@ -18,7 +18,6 @@ class UserCreate(UserBase):
     @field_validator("password")
     @classmethod
     def password_fits_bcrypt(cls, v: str) -> str:
-        # bcrypt rejects passwords longer than 72 bytes
         if len(v.encode("utf-8")) > 72:
             raise ValueError("password must be at most 72 bytes")
         return v
@@ -31,7 +30,6 @@ class UserUpdate(BaseModel):
     email: EmailStr | None = None
     phone: str | None = None
 
-    # these columns are NOT NULL: omitting them is fine, sending null is not
     @field_validator("first_name", "last_name", "email")
     @classmethod
     def not_null(cls, v):
