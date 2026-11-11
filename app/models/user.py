@@ -1,16 +1,22 @@
 import uuid
 
-from sqlalchemy import String
+from sqlalchemy import text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .database import Base
+from app.core.database import Base
 
 
-class Profile(Base):
-    __tablename__ = "profiles"
+class User(Base):
+    __tablename__ = "users"
 
-    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    first_name: Mapped[str] = mapped_column(String(100))
-    last_name: Mapped[str] = mapped_column(String(100))
-    email: Mapped[str] = mapped_column(String(254), unique=True)
-    phone: Mapped[str | None] = mapped_column(String(32))
+    id: Mapped[uuid.UUID] = mapped_column(
+        primary_key=True,
+        index=True,
+        server_default=text("gen_random_uuid()"),
+        init=False
+    )
+    first_name: Mapped[str] = mapped_column(nullable=False)
+    last_name: Mapped[str] = mapped_column(nullable=False)
+    email: Mapped[str] = mapped_column(unique=True, index=True, nullable=False)
+    phone: Mapped[str | None] = mapped_column(nullable=True)
+    hashed_password: Mapped[str] = mapped_column(nullable=False)

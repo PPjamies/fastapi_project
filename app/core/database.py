@@ -1,20 +1,21 @@
 import os
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.orm import sessionmaker, MappedAsDataclass, DeclarativeBase
 
-DATABASE_URL = os.environ.get(
-    "DATABASE_URL", "postgresql+psycopg://profile:profile@localhost:5432/profiles"
-)
+DATABASE_URL = os.getenv("POSTGRES_URL", "postgresql+psycopg://app_user:app_pw@localhost:5432/app_db")
 
 engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-class Base(DeclarativeBase):
+class Base(MappedAsDataclass, DeclarativeBase):
     pass
 
 
 def get_db():
-    with SessionLocal() as db:
+    db = SessionLocal()
+    try:
         yield db
+    finally:
+        db.close()

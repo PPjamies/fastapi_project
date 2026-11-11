@@ -1,16 +1,47 @@
 import uuid
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
-class ProfileIn(BaseModel):
+# fields shared across reading and writing
+class UserBase(BaseModel):
     first_name: str
     last_name: str
     email: EmailStr
     phone: str | None = None
 
 
-class ProfileOut(ProfileIn):
-    model_config = ConfigDict(from_attributes=True)
+# mandatory field needed to create a user
+class UserCreate(UserBase):
+    password: str = Field(min_length=8)
 
+    @field_validator("password")
+    @classmethod
+    def password_fits_bcrypt(cls, v: str) -> str:
+        # bcrypt rejects passwords longer than 72 bytes
+        if len(v.encode("utf-8")) > 72:
+            raise ValueError("password must be at most 72 bytes")
+        return v
+
+
+# optional fields that can be updated
+class UserUpdate(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    email: EmailStr | None = None
+    phone: str | None = None
+
+    # these columns are NOT NULL: omitting them is fine, sending null is not
+    @field_validator("first_name", "last_name", "email")
+    @classmethod
+    def not_null(cls, v):
+        if v is None:
+            raise ValueError("may be omitted but cannot be null")
+        return v
+
+
+# what the api sends back over the network
+class UserResponse(UserBase):
     id: uuid.UUID
+
+    model_config = ConfigDict(from_attributes=True)  # don't panic and convert from map to dot notation

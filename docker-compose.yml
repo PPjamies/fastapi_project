@@ -1,28 +1,30 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:15-alpine
     environment:
-      POSTGRES_USER: profile
-      POSTGRES_PASSWORD: profile
-      POSTGRES_DB: profiles
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: app_pw
+      POSTGRES_DB: app_db
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U profile -d profiles"]
-      interval: 2s
-      retries: 15
+      test: ["CMD-SHELL", "pg_isready -U app_user -d app_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   api:
     build: .
-    environment:
-      DATABASE_URL: postgresql+psycopg://profile:profile@db:5432/profiles
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     ports:
       - "8000:8000"
+    environment:
+      - POSTGRES_URL=postgresql+psycopg://app_user:app_pw@db:5432/app_db
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
-  pgdata:
+  postgres_data:
