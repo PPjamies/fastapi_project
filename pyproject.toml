@@ -1,0 +1,16 @@
+[project]
+name = "fastapi_project"
+version = "1.0.0"
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"] # where to write the new version
+version_variables = ["app/main.py:__version__"] # will need to update this version as well
+tag_format = "v{version}"
+build_command = "" # no need to build package
+allow_zero_version = false
+
+[tool.semantic_release.branches.main]
+match = "main" # only release from main branch
+
+[tool.semantic_release.changelog.default_templates]
+changelog_file = "CHANGELOG.md"

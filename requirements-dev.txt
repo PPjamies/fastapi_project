@@ -1,0 +1,1 @@
+python-sematic-release==10.7.0
