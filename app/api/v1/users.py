@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from app import services
 from app.core.database import get_db
 from app.models.user import User
-from app.schemas import UserCreate, UserResponse, UserUpdate
+from app.schemas import UserCreate, UserResponse, UserUpdate, UserPage
 
 router = APIRouter()
 
@@ -56,6 +56,24 @@ def update_user(user: UserUpdate, db_user: User = Depends(get_existing_user), db
 def delete_user(db_user: User = Depends(get_existing_user), db: Session = Depends(get_db)):
     services.delete_user(db, db_user=db_user)
 
-@router.get("", response_model=list[UserResponse])
-def list_users(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
-    return db.query(User).offset(skip).limit(limit).all()
+
+@router.get("", response_model=UserPage)
+def list_users(cursor: uuid.UUID | None = None, limit: int = 20, db: Session = Depends(get_db)):
+    query = db.query(User).order_by(User.id)
+
+    # start after the last user of the previous page
+    if cursor:
+        query = query.filter(User.id > cursor)
+
+    # ask for one extra row to find out if there's another page
+    rows = query.limit(limit + 1).all()
+    has_more = len(rows) > limit
+
+    # grab the number of rows originally asked for
+    # convert db User to UserResponse
+    items = [UserResponse.model_validate(user) for user in rows[:limit]]
+
+    next_cursor = items[-1].id if has_more else None
+    return UserPage(items=items, next_cursor=next_cursor)
+
+

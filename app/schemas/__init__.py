@@ -1,5 +1,6 @@
 from app.schemas.user import (
     UserCreate,
     UserUpdate,
-    UserResponse
+    UserResponse,
+    UserPage
 )
