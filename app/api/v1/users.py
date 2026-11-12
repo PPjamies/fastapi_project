@@ -55,3 +55,7 @@ def update_user(user: UserUpdate, db_user: User = Depends(get_existing_user), db
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user(db_user: User = Depends(get_existing_user), db: Session = Depends(get_db)):
     services.delete_user(db, db_user=db_user)
+
+@router.get("", response_model=list[UserResponse])
+def list_users(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
+    return db.query(User).offset(skip).limit(limit).all()
