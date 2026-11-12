@@ -43,3 +43,8 @@ class UserResponse(UserBase):
     id: uuid.UUID
 
     model_config = ConfigDict(from_attributes=True)  # don't panic and convert from map to dot notation
+
+
+class UserPage(BaseModel):
+    items: list[UserResponse]
+    next_cursor: uuid.UUID | None
