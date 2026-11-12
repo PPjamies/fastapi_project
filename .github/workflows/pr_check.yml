@@ -1,0 +1,53 @@
+name: PR checks
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, edited]
+
+jobs:
+  label-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out PR
+        uses: actions/checkout@v4
+        with:
+          path: pr # copy pr branch into pr/
+
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: base #  copy main branch into base/
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r pr/requirements.txt
+
+      - name: Export new API spec
+        working-directory: pr
+        run: python scripts/export_openapi.py ../new.json
+
+      - name: Export old API spec
+        working-directory: base
+        run: python ../pr/scripts/export_openapi.py ../old.json
+
+      - name: Check for breaking API changes
+        id: oasdiff
+        run: |
+          if docker run --rm -v "$PWD":/specs:ro tufin/oasdiff breaking --fail-on ERR /specs/old.json /specs/new.json; then
+            echo "breaking=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "breaking=yes" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check PR title matches changes
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          IS_BREAKING: ${{ steps.oasdiff.outputs.breaking }}
+        run: python pr/scripts/check_label.py "$PR_TITLE" "$IS_BREAKING"
