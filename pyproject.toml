@@ -1,6 +1,6 @@
 [project]
 name = "fastapi_project"
-version = "1.0.0"
+version = "1.1.0"
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"] # where to write the new version

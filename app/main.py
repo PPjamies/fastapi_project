@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from app.api.router import router
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 app = FastAPI(
     title="fastapi_project",
