@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v2.0.0 (2026-11-12)
+
+### Features
+
+- Switch list users to cursor pagination ([#3](https://github.com/PPjamies/fastapi_project/pull/3),
+  [`ed0946c`](https://github.com/PPjamies/fastapi_project/commit/ed0946ca3dc14923ea55f549d28c5e04bb369f21))
+
+
 ## v1.1.0 (2026-11-12)
 
 ### Build System
